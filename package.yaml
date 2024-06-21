@@ -3,8 +3,8 @@ version: 0.1.0.0
 github: "githubuser/thinking-func"
 license: BSD-3-Clause
 author: "Author name here"
-maintainer: "example@example.com"
-copyright: "2024 Author name here"
+maintainer: "estebanmarin002@gmail.com"
+copyright: "2024 Esteban Marin"
 
 extra-source-files:
   - README.md

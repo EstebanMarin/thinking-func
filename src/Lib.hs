@@ -1,3 +1,6 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Redundant bracket" #-}
 module Lib
   ( sortFunction,
     Word1,
@@ -11,10 +14,13 @@ module Lib
     countRuns,
     showRun,
     sortRuns,
+    modernise,
+    lazySusan,
+    firstT,
   )
 where
 
-import Data.Char (toLower)
+import Data.Char (toLower, toUpper)
 import Data.List (group, sort, sortBy)
 import Data.Ord
 
@@ -68,4 +74,41 @@ someFunc = putStrLn "someFunc"
 -- example common word1s
 -- problem: find the most common word1 in a text
 commonWord1s :: Int -> Text -> Word1
-commonWord1s n = concatMap showRun . take n . sortRuns . countRuns . sortWord1s . word1xs . map toLower
+commonWord1s n =
+  concatMap showRun . take n . sortRuns . countRuns . sortWord1s . word1xs . map toLower
+
+-- exercise c: chapter 2
+
+-- create a modernize function that takes a string and returns and
+-- capitlizes the first letter of each word
+
+modernise :: String -> String
+modernise = unwords . map capitalize . words
+  where
+    capitalize (x : xs) = toUpper x : map toLower xs
+    capitalize [] = []
+
+-- exercise d: chapter 2
+-- Eiger Beaver identity
+-- instead of maping over a list and then taking the head
+-- we can take the head of the list and then apply the function
+
+eigerBeaver :: [b] -> (b -> a) -> a
+eigerBeaver xs f = head $ map f xs
+eigerBeaver xs f = f . head $ xs
+
+-- say we want to add the filter function
+filterM :: (a -> Bool) -> [a] -> [a]
+filterM p = foldr (\x xs -> if p x then x : xs else xs) []
+
+-- suzan with filter
+lazySusan :: (Eq b) => b -> (b -> c) -> [b] -> c
+lazySusan a f = f . head . filter (== a)
+
+-- exercise e: chapter 2
+firstT :: (a -> Bool) -> [a] -> Maybe a
+firstT p xs = if null ys then Nothing else Just (head ys)
+  where
+    ys = filter p xs
+
+-- exercise f: chapter 2
