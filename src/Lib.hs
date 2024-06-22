@@ -1,6 +1,5 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# LANGUAGE InstanceSigs #-}
 
-{-# HLINT ignore "Redundant bracket" #-}
 module Lib
   ( sortFunction,
     Word1,
@@ -17,10 +16,16 @@ module Lib
     modernise,
     lazySusan,
     firstT,
+    expBook,
+    expSolution,
+    date1,
+    date2,
+    addSum,
+    palindrome,
   )
 where
 
-import Data.Char (toLower, toUpper)
+import Data.Char (isAlpha, toLower, toUpper)
 import Data.List (group, sort, sortBy)
 import Data.Ord
 
@@ -112,3 +117,93 @@ firstT p xs = if null ys then Nothing else Just (head ys)
     ys = filter p xs
 
 -- exercise f: chapter 2
+
+-- here is a definition of the exponentiation function
+expBook :: Integer -> Integer -> Integer
+expBook x n
+  | n == 0 = 1
+  | n == 1 = x
+  | otherwise = x * expBook x (n - 1)
+
+expSolution :: Integer -> Integer -> Integer
+expSolution x n
+  | n == 0 = 1
+  | n == 1 = x
+  | even n = expSolution (x * x) m
+  | odd n = x * expSolution x (m - 1)
+  | otherwise = error "expSolution: unexpected input"
+  where
+    m = n `div` 2
+
+-- exercise g: chapter 2
+
+newtype DateBook = DateBook (Int, Int, Int)
+
+instance Show DateBook where
+  show :: DateBook -> String
+  show (DateBook (d, m, y)) = dateSuffix d ++ " " ++ monthName m ++ ", " ++ show y
+
+dateSuffix :: Int -> String
+dateSuffix day
+  | day `elem` [11, 12, 13] = show day ++ "th"
+  | lastDigit == 1 = show day ++ "st"
+  | lastDigit == 2 = show day ++ "nd"
+  | lastDigit == 3 = show day ++ "rd"
+  | otherwise = show day ++ "th"
+  where
+    lastDigit = day `mod` 10
+
+monthName :: Int -> String
+monthName month = case month of
+  1 -> "January"
+  2 -> "February"
+  3 -> "March"
+  4 -> "April"
+  5 -> "May"
+  6 -> "June"
+  7 -> "July"
+  8 -> "August"
+  9 -> "September"
+  10 -> "October"
+  11 -> "November"
+  12 -> "December"
+  _ -> "Invalid month" -- Handles invalid month numbers
+
+date1 :: DateBook
+date1 = DateBook (1, 1, 2020)
+
+date2 :: DateBook
+date2 = DateBook (2, 2, 2020)
+
+-- exercise h: chapter 2
+
+type CIN = String
+
+type CIN8 = String
+
+addSum :: CIN8 -> CIN
+addSum cin = cin ++ show (sumDigits `div` 10) ++ show (sumDigits `mod` 10)
+  where
+    sumDigits = sum $ map getDigit cin
+
+getDigit :: Char -> Int
+getDigit c = read [c]
+
+valid :: CIN -> Bool
+valid cin = sumDigits `mod` 10 == 0
+  where
+    sumDigits = sum $ map getDigit cin
+
+-- exercise i: chapter 2
+isPalindrome :: String -> Bool
+isPalindrome s = ys == reverse ys
+  where
+    ys = map toLower $ filter isAlpha s
+
+palindrome :: IO ()
+palindrome = do
+  putStrLn "Enter a string:"
+  s <- getLine
+  if isPalindrome s
+    then putStrLn "Yes!"
+    else putStrLn "No!"
