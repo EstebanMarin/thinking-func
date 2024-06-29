@@ -1,29 +1,32 @@
 {-# LANGUAGE InstanceSigs #-}
 
-module Lib
-  ( sortFunction,
-    Word1,
-    Text,
-    commonWord1s,
-    word1xs,
-    lowercaseM,
-    sortWord1s,
-    someFunc,
-    -- countWord1s,
-    countRuns,
-    showRun,
-    sortRuns,
-    modernise,
-    lazySusan,
-    firstT,
-    expBook,
-    expSolution,
-    date1,
-    date2,
-    addSum,
-    palindrome,
-  )
-where
+module Lib where
+
+-- module Lib
+--   ( sortFunction,
+--     Word1,
+--     Text,
+--     commonWord1s,
+--     word1xs,
+--     lowercaseM,
+--     sortWord1s,
+--     someFunc,
+--     -- countWord1s,
+--     countRuns,
+--     showRun,
+--     sortRuns,
+--     modernise,
+--     lazySusan,
+--     firstT,
+--     expBook,
+--     expSolution,
+--     date1,
+--     date2,
+--     addSum,
+--     palindrome,
+--     testUntil,
+--     testUntil2,
+--   )
 
 import Data.Char (isAlpha, toLower, toUpper)
 import Data.List (group, sort, sortBy)
@@ -207,3 +210,38 @@ palindrome = do
   if isPalindrome s
     then putStrLn "Yes!"
     else putStrLn "No!"
+
+-- chapter 4 Notes
+testUntil :: Integer
+testUntil = naiveUntil (> 100) (* 7) 1
+
+-- ghci> testUntil2 1
+-- 343
+
+naiveUntil :: (a -> Bool) -> (a -> a) -> a -> a
+naiveUntil p f x = if p x then x else naiveUntil p f (f x)
+
+-- naive floor it takes n steps to reach the floor of a float
+-- very inneficient
+
+naiveFloor :: Float -> Integer
+naiveFloor x =
+  if x < 0
+    then
+      -- until (\n -> fromInteger n < x) (subtractM 1) (-1)
+      until ((<= x) . fromInteger) (subtractM 1) (-1)
+    else until ((> x) . fromInteger) (+ 1) 1 - 1
+  where
+    subtractM a b = a - b
+
+binaryFloor :: Float -> Integer
+binaryFloor x = fst $ until unit (shrink x) (bound x)
+  where
+    unit (a, b) = a + 1 == b
+    shrink y (a, b) = if y < fromInteger m then (a, m) else (m, b)
+      where
+        m = (a + b) `div` 2
+    bound y = (lower y, upper y)
+      where
+        lower a = until ((<= a) . fromInteger) (* 2) (-1)
+        upper a = until ((> a) . fromInteger) (* 2) 1
