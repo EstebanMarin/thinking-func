@@ -245,3 +245,61 @@ binaryFloor x = fst $ until unit (shrink x) (bound x)
       where
         lower a = until ((<= a) . fromInteger) (* 2) (-1)
         upper a = until ((> a) . fromInteger) (* 2) 1
+
+-- natural numbers
+
+data Nat = Zero | Succ Nat
+
+instance Eq Nat where
+  (==) :: Nat -> Nat -> Bool
+  Zero == Zero = True
+  Succ n == Succ m = n == m
+  _ == _ = False
+
+instance Show Nat where
+  show :: Nat -> String
+  show Zero = "Zero"
+  show (Succ Zero) = "Succ Zero"
+  show (Succ (Succ n)) = "Succ (Succ " ++ show n ++ ")"
+
+instance Num Nat where
+  (+) :: Nat -> Nat -> Nat
+  Zero + n = n
+  Succ m + n = Succ (m + n)
+  (*) :: Nat -> Nat -> Nat
+  Zero * _ = Zero
+  Succ m * n = n + m * n
+  abs :: Nat -> Nat
+  abs = id
+  signum :: Nat -> Nat
+  signum Zero = Zero
+  signum _ = Succ Zero
+  fromInteger :: Integer -> Nat
+  fromInteger n
+    | n < 0 = error "fromInteger: negative"
+    | n == 0 = Zero
+    | otherwise = Succ (fromInteger (n - 1))
+
+  negate :: Nat -> Nat
+  negate = error "negate is not defined for Nat"
+
+-- exercise 3 F
+
+sqrtBookNewton :: Float -> Float
+sqrtBookNewton x = until goodEnough improve x
+  where
+    goodEnough y = abs (y * y - x) < eps * x
+    improve y = (y + x / y) / 2
+    eps = 0.0001
+
+-- ghci> sqrtBookNewton 2
+-- 1.4142157
+
+-- exercise 3 G
+
+instance Ord Nat where
+  (<=) :: Nat -> Nat -> Bool
+  Zero <= Zero = False
+  Zero <= Succ _ = True
+  Succ n <= Succ m = n <= m
+  _ <= Zero = False
