@@ -317,3 +317,30 @@ lastMine :: [a] -> a
 lastMine [] = error "last of empty list"
 lastMine [x] = x
 lastMine (_ : xs) = lastMine xs
+
+-- homegrow implementation of the concatetation simbol
+
+(++!) :: [a] -> [a] -> [a]
+[] ++! ys = ys
+(x : xs) ++! ys = x : (xs ++! ys)
+
+-- noticed that
+-- ghci> undefined ++! [1,2]
+
+-- *** Exception: Prelude.undefined
+
+-- CallStack (from HasCallStack):
+--   undefined, called at <interactive>:6:1 in interactive:Ghci2
+
+lengthMine :: [a] -> Integer
+lengthMine [] = 0
+lengthMine (_ : xs) = 1 + lengthMine xs
+
+concatMine2 :: [[a]] -> [a]
+concatMine2 = foldr (++!) []
+
+mapMine2 :: (a -> b) -> [a] -> [b]
+mapMine2 = map
+
+-- ghci> concatMine2 [[1,2],[3,4]]
+-- [1,2,3,4]
