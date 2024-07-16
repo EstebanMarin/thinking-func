@@ -2,32 +2,6 @@
 
 module Lib where
 
--- module Lib
---   ( sortFunction,
---     Word1,
---     Text,
---     commonWord1s,
---     word1xs,
---     lowercaseM,
---     sortWord1s,
---     someFunc,
---     -- countWord1s,
---     countRuns,
---     showRun,
---     sortRuns,
---     modernise,
---     lazySusan,
---     firstT,
---     expBook,
---     expSolution,
---     date1,
---     date2,
---     addSum,
---     palindrome,
---     testUntil,
---     testUntil2,
---   )
-
 import Data.Char (isAlpha, toLower, toUpper)
 import Data.List (group, sort, sortBy)
 import Data.Ord
@@ -103,7 +77,8 @@ modernise = unwords . map capitalize . words
 
 eigerBeaver :: [b] -> (b -> a) -> a
 eigerBeaver xs f = head $ map f xs
-eigerBeaver xs f = f . head $ xs
+
+-- eigerBeaver xs f = f . head $ xs
 
 -- say we want to add the filter function
 filterM :: (a -> Bool) -> [a] -> [a]
@@ -303,3 +278,42 @@ instance Ord Nat where
   Zero <= Succ _ = True
   Succ n <= Succ m = n <= m
   _ <= Zero = False
+
+-- notes on chapter 4 list
+-- workhorse of functional programmingo
+
+list1 :: [Integer]
+list1 = [x * x | x <- [1 .. 10]]
+
+isPrime :: Integer -> Bool
+isPrime n = n > 1 && all (\d -> n `mod` d /= 0) [2 .. n - 1]
+
+list2 :: [Integer]
+list2 = [x * x | x <- [1 .. 5], isPrime x]
+
+list3 :: [(Integer, Integer)]
+list3 = [(i, j) | i <- [1 .. 5], even i, j <- [i .. 5]]
+
+-- common functions
+
+mapMine :: (t -> a) -> [t] -> [a]
+mapMine f xs = [f x | x <- xs]
+
+filterMine :: (a -> Bool) -> [a] -> [a]
+filterMine p xs = [x | x <- xs, p x]
+
+concatMine :: [[a]] -> [a]
+concatMine xss = [x | xs <- xss, x <- xs]
+
+headMine :: [a] -> a
+headMine [] = error "head of empty list"
+headMine (x : _) = x
+
+tailMine :: [a] -> [a]
+tailMine [] = error "tail of empty list"
+tailMine (_ : xs) = xs
+
+lastMine :: [a] -> a
+lastMine [] = error "last of empty list"
+lastMine [x] = x
+lastMine (_ : xs) = lastMine xs
