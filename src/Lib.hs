@@ -371,3 +371,5 @@ disjointImpleBetter xs'@(x : xs) ys'@(y : ys)
 
 -- funtion 1
 -- function1 = [e | x <- xs, p x, y <- ys]
+-- say y <- ys is an infinite list to laziness we need to be aware about
+-- the cost of folding such data structures
