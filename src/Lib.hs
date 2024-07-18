@@ -364,3 +364,10 @@ disjointImpleBetter xs'@(x : xs) ys'@(y : ys)
   | x < y = disjointImpleBetter xs ys'
   | x > y = disjointImpleBetter xs' ys
   | otherwise = False
+
+-- exercise 4 D
+-- under what conditions funtions 1 and 2 produce
+-- the same result
+
+-- funtion 1
+-- function1 = [e | x <- xs, p x, y <- ys]
