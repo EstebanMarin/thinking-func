@@ -344,3 +344,23 @@ mapMine2 = map
 
 -- ghci> concatMine2 [[1,2],[3,4]]
 -- [1,2,3,4]
+
+-- exercise 4 B
+allPairsPermutatedUnique :: [(Integer, Integer)]
+allPairsPermutatedUnique = [(x, y) | x <- [1 ..], y <- [1 ..], x < y]
+
+allPairsPermutatedUnique2 :: [(Integer, Integer)]
+allPairsPermutatedUnique2 = [(0, y) | y <- [1 ..]]
+
+-- exercise 4 C
+
+disjointImple :: (Ord a) => [a] -> [a] -> Bool
+disjointImple xs ys = null [x | x <- xs, y <- ys, x == y]
+
+disjointImpleBetter :: (Ord a) => [a] -> [a] -> Bool
+disjointImpleBetter _ [] = True
+disjointImpleBetter [] _ = True
+disjointImpleBetter xs'@(x : xs) ys'@(y : ys)
+  | x < y = disjointImpleBetter xs ys'
+  | x > y = disjointImpleBetter xs' ys
+  | otherwise = False
