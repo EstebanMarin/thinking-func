@@ -373,3 +373,36 @@ disjointImpleBetter xs'@(x : xs) ys'@(y : ys)
 -- function1 = [e | x <- xs, p x, y <- ys]
 -- say y <- ys is an infinite list to laziness we need to be aware about
 -- the cost of folding such data structures
+
+-- exercise 4 E
+-- ramanujan numbers
+-- a number that can be expressed as the sum of two cubes in two different ways
+-- a^3 + b^3 = c^3 + d^3
+-- ramanujanNumers n :: (Num a, Eq a, Enum a) => [(a, a, a, a)]
+ramanujanNumers :: Integer -> [(Integer, Integer, Integer, Integer)]
+ramanujanNumers n =
+  [ (a, b, c, d)
+    | a <- [1 .. n],
+      b <- [a .. n],
+      c <- [a + 1 .. n],
+      d <- [c .. n],
+      a ^ 3 + b ^ 3 == c ^ 3 + d ^ 3
+  ]
+
+--   ghci> ramanujanNumers 12
+-- [(1,12,9,10)]
+
+-- exercise 4 G
+-- recursive length definition it takes n space
+-- for each element in the list
+lengthRec :: [a] -> Integer
+lengthRec [] = 0
+lengthRec (_ : xs) = 1 + lengthRec xs
+
+-- tail recursive length definition
+-- it takes constant space for each element in the list
+lengthTailRec :: [a] -> Integer
+lengthTailRec xs = lengthTailRec' xs 0
+  where
+    lengthTailRec' [] n = n
+    lengthTailRec' (_ : xss) n = lengthTailRec' xss (n + 1)
