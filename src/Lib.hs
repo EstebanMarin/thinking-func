@@ -406,3 +406,38 @@ lengthTailRec xs = lengthTailRec' xs 0
   where
     lengthTailRec' [] n = n
     lengthTailRec' (_ : xss) n = lengthTailRec' xss (n + 1)
+
+-- exercise 4 H
+-- recursive definition of take and drop
+takeRec :: Integer -> [a] -> [a]
+takeRec 0 _ = []
+takeRec _ [] = []
+takeRec n (x : xs) = x : takeRec (n - 1) xs
+
+-- tail recursive definition of take
+takeTailRec :: Integer -> [a] -> [a]
+takeTailRec n xs = takeTailRec' n xs []
+  where
+    takeTailRec' 0 _ acc = reverse acc
+    takeTailRec' _ [] acc = reverse acc
+    takeTailRec' n' (x : xss) acc = takeTailRec' (n' - 1) xss (x : acc)
+
+-- recursive definition of drop
+dropRec :: Integer -> [a] -> [a]
+dropRec 0 xs = xs
+dropRec _ [] = []
+dropRec n (_ : xs) = dropRec (n - 1) xs
+
+-- tail recursive definition of drop
+dropTailRec :: Integer -> [a] -> [a]
+dropTailRec n xs = dropTailRec' n xs []
+  where
+    dropTailRec' 0 xs' _ = xs'
+    dropTailRec' _ [] acc = reverse acc
+    dropTailRec' n' (x : xss) acc = dropTailRec' (n' - 1) xss (x : acc)
+
+-- exercise 4 I
+-- map (f . g) xs = map f (map g xs)
+
+forkEx :: (a -> b, a -> c) -> a -> (b, c)
+forkEx (f, g) x = (f x, g x)
