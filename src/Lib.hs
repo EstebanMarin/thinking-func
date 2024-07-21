@@ -492,12 +492,6 @@ digits = ['1' .. '9']
 blank :: Digit -> Bool
 blank = (== '0')
 
--- solve :: Grid -> [Grid]: The solve function takes a Grid as input
--- and returns a list of Grids. The input is the initial state of the Sudoku puzzle,
--- and the output is a list of all possible solutions to the puzzle.
-solve :: Grid -> [Grid]
-solve = filter validSo . completions
-
 validSo :: Grid -> Bool
 -- valid suduko
 -- In the context of Sudoku, a valid grid typically means that
@@ -572,3 +566,15 @@ choices = map (map choice')
 
 completions :: Grid -> [Grid]
 completions = expand . choices
+
+-- solve :: Grid -> [Grid]: The solve function takes a Grid as input
+-- and returns a list of Grids. The input is the initial state of the Sudoku puzzle,
+-- and the output is a list of all possible solutions to the puzzle.
+solve :: Grid -> [Grid]
+solve = filter validSo . completions
+
+-- we want to prune such that
+-- filter validSo . completions = filter validSo . completions . prune
+
+prune :: Matrix [Digit] -> Matrix [Digit]
+prune = undefined
