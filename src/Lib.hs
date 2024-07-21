@@ -5,6 +5,7 @@ module Lib where
 import Data.Char (isAlpha, toLower, toUpper)
 import Data.List (group, sort, sortBy)
 import Data.Ord
+import Text.ParserCombinators.ReadP (choice)
 
 sortFunction :: (Ord a) => [a] -> [a]
 sortFunction = sort
@@ -441,3 +442,109 @@ dropTailRec n xs = dropTailRec' n xs []
 
 forkEx :: (a -> b, a -> c) -> a -> (b, c)
 forkEx (f, g) x = (f x, g x)
+
+-- chapter 5 notes sudoku solver
+
+-- where are missing preciseness in the type signature
+-- the matrix is a list of m rows where each row has the same length n
+-- haskell cannot express this constraint in the type system
+-- there are dependently typed languages that can express this constraint
+-- example in Idris
+-- data Vect : Nat -> Type -> Type where
+--   Nil : Vect 0 a
+--   (::) : a -> Vect n a -> Vect (S n) a
+-- type Matrix a = Vect m (Vect n a)
+-- type Row a = Vect n a
+-- type Column a = Vect m a
+-- type Square a = Matrix n a
+-- type Grid a = Matrix 9 a
+-- type Digit = Char
+-- type Choices = [Digit]
+-- digits = ['1' .. '9']
+-- blank = '0'
+
+-- example in Agda
+-- data Matrix (m n : Nat) (a : Set) : Set where
+--   mat : (rows : Vect m (Vect n a)) -> Matrix m n a
+-- type Matrix a = Matrix m n a
+-- type Row a = Vect n a
+-- type Column a = Vect m a
+-- type Square a = Matrix n n a
+-- type Grid a = Matrix 9 9 a
+-- type Digit = Char
+-- type Choices = [Digit]
+-- digits = ['1' .. '9']
+-- blank = '0'
+-- limitations on type constraints in haskell cannot be annotated
+-- however, they should all be the same length
+
+type Row a = [a]
+
+type Matrix a = [Row a]
+
+type Grid = Matrix Digit
+
+type Digit = Char
+
+digits :: [Char]
+digits = ['1' .. '9']
+
+blank :: Digit -> Bool
+blank = (== '0')
+
+-- solve :: Grid -> [Grid]: The solve function takes a Grid as input
+-- and returns a list of Grids. The input is the initial state of the Sudoku puzzle,
+-- and the output is a list of all possible solutions to the puzzle.
+solve :: Grid -> [Grid]
+solve = filter validSo . completions
+
+validSo :: Grid -> Bool
+-- valid suduko
+-- In the context of Sudoku, a valid grid typically means that
+-- each row, column, and 3x3 subgrid contains no duplicate numbers
+-- (ignoring zeros or blanks, which represent unfilled cells)
+validSo = undefined
+
+expand :: Matrix [Digit] -> [Grid]
+-- expand :: Matrix [Digit] -> [Grid]: The expand function takes a matrix of lists of digits
+-- and returns a list of all possible grids that can be formed by combining the digits in each cell.
+-- exameple
+-- input
+-- [[1] [1 .. 9] [3] [4]]
+-- output
+-- [[1] [1] [3] [4]]
+-- [[1] [2] [3] [4]]
+-- [[1] [3] [3] [4]]
+-- [[1] [4] [3] [4]]
+-- [[1] [5] [3] [4]]
+-- [[1] [6] [3] [4]]
+-- [[1] [7] [3] [4]]
+-- [[1] [8] [3] [4]]
+-- [[1] [9] [3] [4]]
+cp :: [[a]] -> [[a]]
+cp [] = [[]]
+cp (xs : xss) = [x : ys | x <- xs, ys <- cp xss]
+expand = cp . map cp
+
+choices :: Grid -> Matrix [Digit]
+-- The choices function in Haskell, as defined in the provided code snippet, operates on a Sudoku grid. A Sudoku grid (Grid) is typically represented as a matrix (a list of lists) of digits (Digit). The choices function transforms this grid into a matrix where each cell contains a list of possible digits that could occupy that cell, based on the initial state of the grid.
+-- Here's a breakdown of how choices works:
+-- It applies a function to every cell in the grid using map (map choice'). This means it maps over every row, and within each row, it maps over every cell.
+-- The choice' function checks if a cell is blank (typically represented by a zero or a specific blank character). If the cell is blank, it returns a list of all possible digits (digits) that could fill that cell. If the cell is not blank (meaning it already contains a digit), it returns a list containing only that digit.
+-- input
+-- 1 0 0 4
+-- 0 0 3 0
+-- 0 2 0 0
+-- 4 0 0 2
+
+-- output
+-- [[1] [1,2,3,4] [1,2,3,4] [4]]
+-- [[1,2,3,4] [1,2,3,4] [3] [1,2,3,4]]
+-- [[1,2,3,4] [2] [1,2,3,4] [1,2,3,4]]
+-- [[4] [1,2,3,4] [1,2,3,4] [2]]
+choices = map (map choice')
+  where
+    choice' d = if blank d then digits else [d]
+
+completions :: Grid -> [Grid]
+completions = expand . choices
