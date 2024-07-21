@@ -576,5 +576,17 @@ solve = filter validSo . completions
 -- we want to prune such that
 -- filter validSo . completions = filter validSo . completions . prune
 
+pruneBy :: ([Row [Digit]] -> [Row [Digit]]) -> [Row [Digit]] -> [Row [Digit]]
+pruneBy f = f . map pruneRow . f
+
+pruneRow :: Row [Digit] -> Row [Digit]
+pruneRow row = map (remove fixed) row
+  where
+    fixed = [d | [d] <- row]
+
+remove :: [Digit] -> [Digit] -> [Digit]
+remove _ [x] = [x]
+remove ds xs = filter (`notElem` ds) xs
+
 prune :: Matrix [Digit] -> Matrix [Digit]
-prune = undefined
+prune = pruneBy boxs . pruneBy cols . pruneBy rows
