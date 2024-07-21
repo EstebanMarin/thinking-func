@@ -503,7 +503,29 @@ validSo :: Grid -> Bool
 -- In the context of Sudoku, a valid grid typically means that
 -- each row, column, and 3x3 subgrid contains no duplicate numbers
 -- (ignoring zeros or blanks, which represent unfilled cells)
-validSo = undefined
+validSo g = all nodups (rows g) && all nodups (cols g) && all nodups (boxs g)
+
+nodups :: (Eq a) => [a] -> Bool
+nodups [] = True
+nodups (x : xs) = notElem x xs && nodups xs
+
+rows :: Matrix a -> Matrix a
+rows = id
+
+cols :: Matrix a -> Matrix a
+cols [] = [] -- Handle the empty list case
+cols [xs] = [[x] | x <- xs]
+cols (xs : xss) = zipWith (:) xs (cols xss)
+
+boxs :: Matrix a -> Matrix a
+boxs = map ungroupS . ungroupS . map cols . groupS . map groupS
+
+groupS :: [a] -> [[a]]
+groupS [] = [] -- Handle the empty list case
+groupS xs = take 3 xs : groupS (drop 3 xs)
+
+ungroupS :: [[a]] -> [a]
+ungroupS = concat
 
 expand :: Matrix [Digit] -> [Grid]
 -- expand :: Matrix [Digit] -> [Grid]: The expand function takes a matrix of lists of digits
@@ -517,13 +539,15 @@ expand :: Matrix [Digit] -> [Grid]
 -- [[1] [3] [3] [4]]
 -- [[1] [4] [3] [4]]
 -- [[1] [5] [3] [4]]
--- [[1] [6] [3] [4]]
--- [[1] [7] [3] [4]]
--- [[1] [8] [3] [4]]
--- [[1] [9] [3] [4]]
+-- ..
+-- ..
+-- [[4] [1] [3] [1]]
+-- ..
 cp :: [[a]] -> [[a]]
 cp [] = [[]]
-cp (xs : xss) = [x : ys | x <- xs, ys <- cp xss]
+-- inneficent implementation
+-- cp (xs : xss) = [x : ys | x <- xs, ys <- cp xss]
+cp (xs : xss) = [x : ys | x <- xs, ys <- cp yss] where yss = cp xss
 expand = cp . map cp
 
 choices :: Grid -> Matrix [Digit]
