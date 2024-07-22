@@ -537,12 +537,13 @@ expand :: Matrix [Digit] -> [Grid]
 -- ..
 -- [[4] [1] [3] [1]]
 -- ..
+expand = cp . map cp
+
 cp :: [[a]] -> [[a]]
 cp [] = [[]]
 -- inneficent implementation
 -- cp (xs : xss) = [x : ys | x <- xs, ys <- cp xss]
 cp (xs : xss) = [x : ys | x <- xs, ys <- cp yss] where yss = cp xss
-expand = cp . map cp
 
 choices :: Grid -> Matrix [Digit]
 -- The choices function in Haskell, as defined in the provided code snippet, operates on a Sudoku grid. A Sudoku grid (Grid) is typically represented as a matrix (a list of lists) of digits (Digit). The choices function transforms this grid into a matrix where each cell contains a list of possible digits that could occupy that cell, based on the initial state of the grid.
@@ -642,3 +643,23 @@ search cm
   | otherwise = concatMap search (expand1 pm)
   where
     pm = prune cm
+
+-- chapter 6 notes
+-- proofs
+-- in our case using induction
+-- base case
+-- inductive step
+-- we can use the same approach to prove the correctness of our programs
+-- we can use induction to prove the correctness of our programs
+-- we can use high-order functions to capture common patterns
+
+-- exponential function
+expBook6 :: (Num a, Eq a) => a -> a -> a
+expBook6 x n
+  | n == 0 = 1
+  | n == 1 = x
+  | otherwise = x * expBook6 x (n - 1)
+
+-- how to test
+-- exp x (m+n) = exp x m * exp x n
+-- by induction
