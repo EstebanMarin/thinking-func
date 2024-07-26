@@ -1,11 +1,11 @@
 {-# LANGUAGE InstanceSigs #-}
+{-# OPTIONS_GHC -Wno-missing-export-lists #-}
 
 module Lib where
 
 import Data.Char (isAlpha, toLower, toUpper)
 import Data.List (group, sort, sortBy)
 import Data.Ord
-import Text.ParserCombinators.ReadP (choice, count)
 
 sortFunction :: (Ord a) => [a] -> [a]
 sortFunction = sort
@@ -387,7 +387,8 @@ ramanujanNumers n =
       b <- [a .. n],
       c <- [a + 1 .. n],
       d <- [c .. n],
-      a ^ 3 + b ^ 3 == c ^ 3 + d ^ 3
+      (a :: Integer) ^ (3 :: Integer) + (b :: Integer) ^ (3 :: Integer)
+        == (c :: Integer) ^ (3 :: Integer) + (d :: Integer) ^ (3 :: Integer)
   ]
 
 --   ghci> ramanujanNumers 12
@@ -470,13 +471,19 @@ forkEx (f, g) x = (f x, g x)
 -- type Row a = Vect n a
 -- type Column a = Vect m a
 -- type Square a = Matrix n n a
--- type Grid a = Matrix 9 9 a
--- type Digit = Char
--- type Choices = [Digit]
--- digits = ['1' .. '9']
--- blank = '0'
--- limitations on type constraints in haskell cannot be annotated
--- however, they should all be the same length
+-- typesolveOptimation3 :: Grid -> [Grid]
+solveOptimation3 :: Grid -> [Grid]
+solveOptimation3 = search . choices
+
+searchInitial :: Matrix [Digit] -> [Grid]
+searchInitial cm
+  | complete pm = [extract pm]
+  | otherwise = concatMap search (expand1 pm)
+  where
+    pm = prune cm
+
+-- fibonacci :: Int -> [Int]
+-- fibonacci n = take n $ foldr (\_ (a : b : xs) -> (a + b) : a : b : xs) [1, 0] [1 ..] tMap search (expand1 pm)
 
 type Row a = [a]
 
@@ -611,8 +618,8 @@ expand1 rows' = [rows1 ++ [row1 ++ [c] : row2] ++ rows2 | c <- cs]
     -- (rows1, row : rows2) = break (any (not . single)) rows'
     -- (row1, cs : row2) = break (not . single) row
     (rows1, row : rows2) = break (any smallest) rows'
-    (row1, cs : row2) = break (smallest) row
-    smallest cs = length cs == n
+    (row1, cs : row2) = break smallest row
+    smallest cs' = length cs' == n
     n = minimum $ counts rows'
     counts = filter (/= 1) . map length . concat
 
@@ -633,8 +640,8 @@ safe cm =
 extract :: Matrix [Digit] -> Grid
 extract = map (map head)
 
-solveOptimation3 :: Grid -> [Grid]
-solveOptimation3 = search . choices
+solveOptimation4 :: Grid -> [Grid]
+solveOptimation4 = search . choices
 
 search :: Matrix [Digit] -> [Grid]
 search cm
@@ -662,4 +669,137 @@ expBook6 x n
 
 -- how to test
 -- exp x (m+n) = exp x m * exp x n
--- by induction
+-- by induction over m and we need to prove the base case and the inductive step
+-- case [] base case
+-- exp x (0+n) = exp x 0 * exp x n
+-- exp x 0 * exp x n = 1 * exp x n
+-- 1 * exp x n = 1 * exp x n
+-- exp x n = exp x n
+
+-- There is induction o
+
+-- The fusion law of foldr is a powerful optimization rule in functional programming, particularly in Haskell. It allows you to combine a foldr with a function that processes its result, potentially eliminating intermediate data structures and improving performance.
+
+-- Fusion Law of foldr
+-- The fusion law states that if you have a function h that can be expressed as h . foldr f z, then under certain conditions, you can fuse h directly into the foldr to avoid creating an intermediate list. The law can be written as:
+
+-- [ h \circ \text{foldr} , f , z = \text{foldr} , g , e ]
+
+-- where g and e are defined such that:
+
+-- [ h , (f , x , y) = g , x , (h , y) ] [ h , z = e ]
+
+-- Conditions for Fusion
+-- For the fusion law to hold, the function h must distribute over the foldr operation. This means that h must be able to be applied to the result of the foldr in a way that allows it to be fused into the foldr itself.
+
+-- Example
+-- Consider the function map which applies a function f to each element of a list. The map function can be defined using foldr as follows:
+
+-- Now, suppose we want to fuse map f with another foldr operation. For example, let's say we have:
+
+-- Using the fusion law, we can fuse map (^2) into the foldr:
+
+-- Identify h as map (^2).
+-- Define g and e such that:
+-- h (f x y) = g x (h y)
+-- h z = e
+-- For map (^2), we have:
+
+-- h (x : xs) = (^2) x : map (^2) xs
+-- h [] = []
+-- So, we can rewrite sumSquares as:
+
+-- This eliminates the intermediate list created by map (^2) and directly computes the sum of squares.
+
+-- Summary
+-- The fusion law of foldr allows you to combine a foldr with a function that processes its result, potentially eliminating intermediate data structures. The key is to express the function h in a way that it can be fused into the foldr, defining appropriate g and e functions. This optimization can lead to more efficient code by reducing the overhead of intermediate lists.
+
+-- The primary difference between foldr (fold right) and foldl (fold left) in Haskell lies in how they traverse the list and combine the elements with the accumulator function. Here’s a detailed comparison:
+
+-- foldr (fold right)
+-- Traversal: foldr processes the list from right to left.
+-- Function Application: The function is applied starting from the rightmost element and moving to the left.
+-- Lazy Evaluation: foldr can work with infinite lists because it can produce results without necessarily traversing the entire list.
+-- Signature: foldr :: (a -> b -> b) -> b -> [a] -> b
+-- Example:
+-- foldl (fold left)
+-- Traversal: foldl processes the list from left to right.
+-- Function Application: The function is applied starting from the leftmost element and moving to the right.
+-- Strict Evaluation: foldl is strict in the accumulator, meaning it evaluates the accumulator as it traverses the list. This can lead to stack overflow with large lists.
+-- Signature: foldl :: (b -> a -> b) -> b -> [a] -> b
+-- Example:
+-- Key Differences:
+-- Order of Application:
+
+-- foldr applies the function starting from the rightmost element.
+-- foldl applies the function starting from the leftmost element.
+-- Evaluation Strategy:
+
+-- foldr can work with infinite lists due to its lazy nature.
+-- foldl is strict and can lead to stack overflow with large lists.
+-- Use Cases:
+
+-- foldr is often used when constructing new lists or working with potentially infinite lists.
+-- foldl is used when you need to accumulate results in a strict manner, such as summing a list of numbers.
+-- Example Comparison:
+-- Consider a function to concatenate a list of strings:
+
+-- Using foldr:
+-- Using foldl:
+-- Both foldr and foldl produce the same result in this case, but the order of function application differs.
+
+-- Summary
+-- Use foldr when dealing with potentially infinite lists or when the function is naturally right-associative.
+-- Use foldl when you need strict evaluation and are working with finite lists.
+
+-- In Haskell, the scanl function is similar to foldl, but instead of returning just the final result, it returns a list of successive reduced values from the left. Essentially, scanl produces a list of all intermediate accumulator states.
+
+-- Signature
+-- Parameters
+-- (b -> a -> b): A binary function that takes an accumulator and a list element and returns a new accumulator.
+-- b: The initial accumulator value.
+-- [a]: The input list.
+-- Returns
+-- [b]: A list of intermediate accumulator states, including the initial accumulator.
+-- Example
+-- Consider the following example where we use scanl to compute the running totals of a list of numbers:
+
+-- Explanation
+-- The initial accumulator is 0.
+-- The first element 1 is added to the accumulator 0, resulting in 1.
+-- The next element 2 is added to the new accumulator 1, resulting in 3.
+-- The next element 3 is added to the new accumulator 3, resulting in 6.
+-- The next element 4 is added to the new accumulator 6, resulting in 10.
+-- The resulting list [0, 1, 3, 6, 10] includes the initial accumulator and all intermediate results.
+
+-- Use Cases
+-- Running Totals: As shown in the example, scanl can be used to compute running totals or other cumulative operations.
+-- Intermediate States: When you need to keep track of all intermediate states of a computation, scanl is useful.
+-- Visualization: Useful for visualizing the step-by-step transformation of an accumulator.
+-- Comparison with foldl
+-- foldl only returns the final accumulator value.
+-- scanl returns a list of all intermediate accumulator values, including the initial value.
+-- Example with Strings
+-- Using scanl to concatenate a list of strings:
+
+-- This shows the intermediate states of the concatenation process.
+
+-- Summary
+-- scanl is a powerful function in Haskell that provides insight into the intermediate states of a left fold operation, making it useful for debugging, visualization, and cumulative computations.
+
+-- Fib
+
+-- fibonacci :: Int -> [Int]
+-- fibonacci n = take n $ foldr (\_ (a:b:xs) -> (a + b) : a : b : xs) [1, 0] [1..]
+
+inits :: [a] -> [[a]]
+inits [] = [[]]
+inits (x : xs) = [] : map (x :) (inits xs)
+
+scanlBook :: (b -> a -> b) -> b -> [a] -> [b]
+scanlBook f q xs =
+  q
+    : ( case xs of
+          [] -> []
+          x : xs -> scanlBook f (f q x) xs
+      )
