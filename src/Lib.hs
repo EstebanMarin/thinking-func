@@ -617,7 +617,9 @@ expand1 rows' = [rows1 ++ [row1 ++ [c] : row2] ++ rows2 | c <- cs]
     -- this implematation is inneficient
     -- (rows1, row : rows2) = break (any (not . single)) rows'
     -- (row1, cs : row2) = break (not . single) row
-    (rows1, row : rows2) = break (any smallest) rows'
+    (rows1, row : rows2) = case (rows1, row) of
+      (rows'', _) -> break (any smallest) rows''
+      (_, []) -> break (any smallest) rows'
     (row1, cs : row2) = break smallest row
     smallest cs' = length cs' == n
     n = minimum $ counts rows'
