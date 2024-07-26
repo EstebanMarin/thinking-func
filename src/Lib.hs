@@ -801,5 +801,5 @@ scanlBook f q xs =
   q
     : ( case xs of
           [] -> []
-          x : xs -> scanlBook f (f q x) xs
+          x : xss -> scanlBook f (f q x) xss
       )
