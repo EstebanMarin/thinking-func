@@ -1000,9 +1000,15 @@ some p = do
 optional :: Parser [a] -> Parser [a]
 optional p = p <|> noneP
 
-natural :: Parser Integer
+natural :: Parser Int
 natural = token nat
+
+nat :: Parser Int
+nat = do
+  xs <- some digitM
+  return (foldl (\n d -> 10 * n + d) 0 xs)
+
+intP :: Parser Int
+intP = do space; f <- minus; f <$> nat
   where
-    nat = do
-      xs <- some digitM
-      return (foldl (\n d -> 10 * n + toInteger d) 0 xs)
+    minus = (charM '-' >> return negate) <|> return id
