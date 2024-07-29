@@ -3,13 +3,10 @@
 
 module Lib where
 
-import Control.Applicative (optional)
 import qualified Control.Monad
 import Data.List (group, sort, sortBy)
-import Data.List.NonEmpty (nonEmpty)
 import Data.Ord
 import GHC.Unicode
-import Text.ParserCombinators.ReadPrec (reset)
 
 sortFunction :: (Ord a) => [a] -> [a]
 sortFunction = sort
@@ -997,8 +994,8 @@ some p = do
   xs <- manyP p
   return (x : xs)
 
-optional :: Parser [a] -> Parser [a]
-optional p = p <|> noneP
+optionalM :: Parser [a] -> Parser [a]
+optionalM p = p <|> noneP
 
 natural :: Parser Int
 natural = token nat
@@ -1012,3 +1009,26 @@ intP :: Parser Int
 intP = do space; f <- minus; f <$> nat
   where
     minus = (charM '-' >> return negate) <|> return id
+
+ints :: Parser [Int]
+ints = bracketP (manywith (symbol ",") intP)
+
+bracketP :: Parser a -> Parser a
+bracketP p = do
+  symbol "["
+  n <- p
+  symbol "]"
+  return n
+
+manywith :: Parser a -> Parser b -> Parser [b]
+manywith p q = optionalM (somewith p q)
+
+somewith :: Parser a -> Parser b -> Parser [b]
+somewith p q = do
+  x <- q
+  xs <- manyP (p >> q)
+  return (x : xs)
+
+data Expr = Con Int | Bin Op Expr Expr deriving (Show)
+
+data Op = Plus | Minus deriving (Show)
