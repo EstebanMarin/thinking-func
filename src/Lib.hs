@@ -3,10 +3,9 @@
 
 module Lib where
 
-import Data.Char (isAlpha, toLower, toUpper)
 import Data.List (group, sort, sortBy)
 import Data.Ord
-import Data.Type.Equality (apply)
+import GHC.Unicode
 
 sortFunction :: (Ord a) => [a] -> [a]
 sortFunction = sort
@@ -856,12 +855,61 @@ parseMine p = fst . head . applyP p
 -- By ensuring that the Applicative instance is defined, you satisfy the requirements for the Monad instance, and the error should be resolved.
 
 instance Functor Parser where
+  fmap :: (a -> b) -> Parser a -> Parser b
   fmap f p = Parser (\inp -> [(f v, out) | (v, out) <- applyP p inp])
 
 instance Applicative Parser where
-  pure v = Parser (\inp -> [(v, inp)])
+  pure :: a -> Parser a
+  pure x = Parser (\inp -> [(x, inp)])
+  (<*>) :: Parser (a -> b) -> Parser a -> Parser b
   pf <*> px = Parser (\inp -> [(f v, out2) | (f, out1) <- applyP pf inp, (v, out2) <- applyP px out1])
 
 instance Monad Parser where
   (>>=) :: Parser a -> (a -> Parser b) -> Parser b
   p >>= f = Parser (\inp -> concat [applyP (f v) out | (v, out) <- applyP p inp])
+
+-- basic parsers
+getc :: Parser Char
+getc = Parser f
+  where
+    f [] = []
+    f (c : cs) = [(c, cs)]
+
+-- parse satifies character
+satP :: (Char -> Bool) -> Parser Char
+satP p = do
+  c <- getc
+  if p c then return c else failM
+
+failM :: Parser a
+failM = Parser (const [])
+
+-- adding guard combinators
+
+guardSatP :: (Char -> Bool) -> Parser Char
+guardSatP p = do
+  c <- getc
+  guard (p c)
+  return c
+
+guard :: Bool -> Parser ()
+guard True = return ()
+guard False = failM
+
+charM :: Char -> Parser ()
+charM x = do _ <- guardSatP (== x); return ()
+
+stringM :: String -> Parser ()
+stringM [] = return ()
+stringM (x : xs) = do charM x; stringM xs; return ()
+
+lowerM :: Parser Char
+lowerM = guardSatP isLower
+
+digitM :: Parser Int
+digitM = do
+  c <- guardSatP isDigit
+  return (digitToInt c)
+  where
+    digitToInt c = ord c - ord '0'
+    ord = fromEnum
