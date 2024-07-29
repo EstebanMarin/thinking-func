@@ -6,6 +6,7 @@ module Lib where
 import Data.Char (isAlpha, toLower, toUpper)
 import Data.List (group, sort, sortBy)
 import Data.Ord
+import Data.Type.Equality (apply)
 
 sortFunction :: (Ord a) => [a] -> [a]
 sortFunction = sort
@@ -805,3 +806,62 @@ scanlBook f q xs =
           [] -> []
           x : xss -> scanlBook f (f q x) xss
       )
+
+-- taking the mean
+
+meanOwnImpl :: [Float] -> Float
+-- solving first problem of typoe casting
+meanOwnImpl xs = sum xs / fromIntegral (length xs)
+
+-- one traverse
+sumLen :: [Float] -> (Float, Int)
+-- sumLen = foldr (\x (s, n) -> (s + x, n + 1)) (0, 0)
+sumLen [] = (0, 0)
+sumLen (x : xs) = (s + x, n + 1)
+  where
+    (s, n) = sumLen xs
+
+-- but we know by now that fold can provide an optimal solution
+sumLenFold :: [Float] -> (Float, Int)
+sumLenFold = foldr (\x (s, n) -> (s + x, n + 1)) (0, 0)
+
+sumLenBter :: [Float] -> (Float, Int)
+sumLenBter = foldl' (\(s, n) x -> (s + x, n + 1)) (0, 0)
+
+foldl' :: (b -> a -> b) -> b -> [a] -> b
+foldl' f z [] = z
+foldl' f z (x : xs) = let z' = f z x in z' `seq` foldl' f z' xs
+
+-- chapter 11 parser
+
+newtype Parser a = Parser (String -> [(a, String)])
+
+applyP :: Parser a -> String -> [(a, String)]
+applyP (Parser p) = p
+
+parseMine :: Parser a -> String -> a
+parseMine p = fst . head . applyP p
+
+-- Explanation
+-- Functor Instance:
+
+-- fmap f p = Parser (\inp -> [(f v, out) | (v, out) <- applyP p inp]): This defines how to apply a function f to the result of a Parser.
+-- Applicative Instance:
+
+-- pure v = Parser (\inp -> [(v, inp)]): This defines how to create a Parser that always returns the value v without consuming any input.
+-- pf <*> px = Parser (\inp -> [(f v, out2) | (f, out1) <- applyP pf inp, (v, out2) <- applyP px out1]): This defines how to apply a Parser that produces a function (pf) to a Parser that produces a value (px).
+-- Monad Instance:
+
+-- p >>= f = Parser (\inp -> concat [applyP (f v) out | (v, out) <- applyP p inp]): This defines how to chain parsers together, where the result of the first parser (p) is used to determine the next parser (f).
+-- By ensuring that the Applicative instance is defined, you satisfy the requirements for the Monad instance, and the error should be resolved.
+
+instance Functor Parser where
+  fmap f p = Parser (\inp -> [(f v, out) | (v, out) <- applyP p inp])
+
+instance Applicative Parser where
+  pure v = Parser (\inp -> [(v, inp)])
+  pf <*> px = Parser (\inp -> [(f v, out2) | (f, out1) <- applyP pf inp, (v, out2) <- applyP px out1])
+
+instance Monad Parser where
+  (>>=) :: Parser a -> (a -> Parser b) -> Parser b
+  p >>= f = Parser (\inp -> concat [applyP (f v) out | (v, out) <- applyP p inp])
