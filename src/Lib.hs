@@ -3,9 +3,13 @@
 
 module Lib where
 
+import Control.Applicative (optional)
+import qualified Control.Monad
 import Data.List (group, sort, sortBy)
+import Data.List.NonEmpty (nonEmpty)
 import Data.Ord
 import GHC.Unicode
+import Text.ParserCombinators.ReadPrec (reset)
 
 sortFunction :: (Ord a) => [a] -> [a]
 sortFunction = sort
@@ -913,3 +917,92 @@ digitM = do
   where
     digitToInt c = ord c - ord '0'
     ord = fromEnum
+
+-- ghci> applyP (stringM "hell") "hello"
+-- [((),"o")]
+
+(<|>) :: Parser a -> Parser a -> Parser a
+-- -- Assume these are defined somewhere
+-- parserA :: Parser Char
+-- parserA = ...
+
+-- parserB :: Parser Char
+-- parserB = ...
+
+-- -- Using the <|> operator
+-- combinedParser :: Parser Char
+-- combinedParser = parserA <|> parserB
+p <|> q = Parser f where f s = let ps = applyP p s in if null ps then applyP q s else ps
+
+lowersM :: Parser String
+lowersM =
+  do
+    c <- lowerM
+    cs <- lowersM
+    return (c : cs)
+    <|> return ""
+
+-- ghci> applyP lowers "Upper"
+-- [("","Upper")]
+
+-- ghci> applyP lowers "isUpper"
+-- [("is","Upper")]
+
+wrong :: Parser Int
+wrong = addition <|> digitM
+
+best :: Parser Int
+best = digitM >>= rest
+
+rest :: Int -> Parser Int
+rest m = do
+  charM '+'
+  n <- digitM
+  return (m + n)
+
+addition :: Parser Int
+addition = do
+  x <- digitM
+  charM '+'
+  y <- digitM
+  return (x + y)
+
+manyP :: Parser a -> Parser [a]
+manyP p =
+  do
+    x <- p
+    xs <- manyP p
+    return (x : xs)
+    <|> noneP
+
+noneP :: Parser [a]
+noneP = return []
+
+lowers :: Parser [Char]
+lowers = manyP lowerM
+
+space :: Parser ()
+space = Control.Monad.void (manyP (guardSatP isSpace))
+
+symbol :: String -> Parser ()
+symbol xs = do
+  space >> stringM xs >> space
+
+token :: Parser a -> Parser a
+token p = space >> p
+
+some :: Parser a -> Parser [a]
+some p = do
+  x <- p
+  xs <- manyP p
+  return (x : xs)
+
+optional :: Parser [a] -> Parser [a]
+optional p = p <|> noneP
+
+natural :: Parser Integer
+natural = token nat
+  where
+    nat = do
+      xs <- some digitM
+      return (foldl (\n d -> 10 * n + toInteger d) 0 xs)
