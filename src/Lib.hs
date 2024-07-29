@@ -1032,3 +1032,24 @@ somewith p q = do
 data Expr = Con Int | Bin Op Expr Expr deriving (Show)
 
 data Op = Plus | Minus deriving (Show)
+
+expr :: Parser Expr
+expr = token (constant <|> paren binary)
+
+constant :: Parser Expr
+constant = do Con <$> nat
+
+paren :: Parser a -> Parser a
+paren p = do symbol "("; n <- p; symbol ")"; return n
+
+binary :: Parser Expr
+binary = do
+  x <- expr
+  op <- operator
+  Bin op x <$> expr
+
+operator :: Parser Op
+operator = (symbol "+" >> return Plus) <|> (symbol "-" >> return Minus)
+
+term :: Parser Expr
+term = token (constant <|> paren expr)
