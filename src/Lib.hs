@@ -228,7 +228,7 @@ binaryFloor x = fst $ until unit (shrink x) (bound x)
 data Nat = Zero | Succ Nat
 
 instance Eq Nat where
-  (==) :: Nat -> Nat -> Bool
+  (==) :: (Nat a) => a -> Bool
   Zero == Zero = True
   Succ n == Succ m = n == m
   _ == _ = False
@@ -1063,55 +1063,55 @@ mapt f (x : xs) = f x : mapt f xs
 testt :: [Integer]
 testt = map (+ 1) [1, 2, 3]
 
-data Nat = Zero | Succ Nat
+-- data Nat = Zero | Succ Nat
 
-instance Eq Nat where
-  (==) :: Nat -> Nat -> Bool
-  Zero == Zero = True
-  Succ n == Succ m = n == m
-  _ == _ = False
+-- instance Eq Nat where
+--   (==) :: Nat -> Nat -> Bool
+--   Zero == Zero = True
+--   Succ n == Succ m = n == m
+--   _ == _ = False
 
-instance Show Nat where
-  show :: Nat -> String
-  show Zero = "Zero"
-  show (Succ Zero) = "Succ Zero"
-  show (Succ (Succ n)) = "Succ (Succ " ++ show n ++ ")"
+-- instance Show Nat where
+--   show :: Nat -> String
+--   show Zero = "Zero"
+--   show (Succ Zero) = "Succ Zero"
+--   show (Succ (Succ n)) = "Succ (Succ " ++ show n ++ ")"
 
-instance Num Nat where
-  (+) :: Nat -> Nat -> Nat
-  Zero + n = n
-  Succ m + n = Succ (m + n)
-  (*) :: Nat -> Nat -> Nat
-  Zero * _ = Zero
-  Succ m * n = n + m * n
-  abs :: Nat -> Nat
-  abs = id
-  signum :: Nat -> Nat
-  signum Zero = Zero
-  signum _ = Succ Zero
-  fromInteger :: Integer -> Nat
-  fromInteger n
-    | n < 0 = error "fromInteger: negative"
-    | n == 0 = Zero
-    | otherwise = Succ (fromInteger (n - 1))
+-- instance Num Nat where
+--   (+) :: Nat -> Nat -> Nat
+--   Zero + n = n
+--   Succ m + n = Succ (m + n)
+--   (*) :: Nat -> Nat -> Nat
+--   Zero * _ = Zero
+--   Succ m * n = n + m * n
+--   abs :: Nat -> Nat
+--   abs = id
+--   signum :: Nat -> Nat
+--   signum Zero = Zero
+--   signum _ = Succ Zero
+--   fromInteger :: Integer -> Nat
+--   fromInteger n
+--     | n < 0 = error "fromInteger: negative"
+--     | n == 0 = Zero
+--     | otherwise = Succ (fromInteger (n - 1))
 
-  negate :: Nat -> Nat
-  negate = error "negate is not defined for Nat"
+--   negate :: Nat -> Nat
+--   negate = error "negate is not defined for Nat"
 
-instance Num Applicative where
-  pure :: a -> f a
-  (<*>) :: f (a -> b) -> f a -> f b
+-- instance Num Applicative where
+--   pure :: a -> f a
+--   (<*>) :: f (a -> b) -> f a -> f b
 
-instance Num Monad where
-  (>>=) :: m a -> (a -> m b) -> m b
-  (>>) :: m a -> m b -> m b
-  return :: a -> m a
+-- instance Num Monad where
+--   (>>=) :: m a -> (a -> m b) -> m b
+--   (>>) :: m a -> m b -> m b
+--   return :: a -> m a
 
-instance Num Functor where
-  fmap :: (a -> b) -> f a -> f b
+-- instance Num Functor where
+--   fmap :: (a -> b) -> f a -> f b
 
-instance Num Semigroup where
-  (<>) :: a -> a -> a
+-- instance Num Semigroup where
+--   (<>) :: a -> a -> a
 
-instance Num Monoid where
-  mempty :: a
+-- instance Num Monoid where
+--   mempty :: a
